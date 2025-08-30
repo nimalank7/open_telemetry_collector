@@ -1,0 +1,33 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: trace-collector
+spec:
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.131.1
+  mode: sidecar
+  config:
+    receivers:
+      filelog:
+        include:
+          - /var/log/node_application/*.log
+        start_at: end
+        storage: file_storage
+    extensions:
+      file_storage:
+        directory: /etc/otelcol-contrib/data/storage/
+        create_directory: true
+    exporters:
+      file:
+        path: /etc/otelcol-contrib/data/output.log
+    service:
+      extensions: [file_storage]
+      pipelines:
+        logs:
+          receivers: [filelog]
+          processors: []
+          exporters: [file]
+  volumeMounts:
+    - name: logs
+      mountPath: /var/log/node_application
+    - name: extension
+      mountPath: etc/otelcol-contrib/data

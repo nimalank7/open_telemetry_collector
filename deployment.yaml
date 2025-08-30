@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-log-application
+  labels:
+    app: node-log-application
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-log-application
+  template:
+    metadata:
+      labels:
+        app: node-log-application
+      annotations:
+        sidecar.opentelemetry.io/inject: "true"
+    spec:
+      containers:
+        - name: node-log-application
+          image: node-log-application:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: logs
+              mountPath: /logs
+            - name: extension
+              mountPath: /data
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: extension
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-log-application
+  labels:
+    app: node-log-application
+spec:
+  selector:
+    app: node-log-application
+  ports:
+    - port: 3000
+      name: http
+      targetPort: 3000
+  type: ClusterIP
