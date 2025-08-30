@@ -1,0 +1,4 @@
+/.idea
+node_modules/
+*.log
+*receiver_filelog_
